@@ -1,4 +1,34 @@
-use super::{Settings, read_number, read_string, wait_for_enter};
+use std::io::{self, Write};
+use crate::{Settings, file_manager};
+
+//=====general=====
+fn read_string() -> String {
+    io::stdout().flush().unwrap();
+
+    let mut input = String::new();
+    io::stdin().read_line(&mut input)
+       .expect("Ошибка чтения ввода");
+    input.trim().to_string()
+}
+
+fn read_number() -> u32 {
+    loop {
+        match read_string().parse::<u32>() {
+            Ok(number) if number >= 0 => return number,
+            _ => {
+                print!("Введите неотрицательное число: ");
+                io::stdout().flush().unwrap();
+            }
+        }
+    }
+}
+
+fn wait_for_enter() {
+    println!("\nНажмите Enter, чтобы вернуться в главное меню.");
+    read_string();
+}
+
+
 
 pub fn main_menu (settings: &mut Settings) {
     loop {
@@ -37,6 +67,16 @@ fn load_game() {
     wait_for_enter();
 }
 
+fn about() {
+    println!("\nО программе");
+    println!("Название: Моя весёлая жизнь в универе");
+    println!("Версия: 0.2");
+    println!("Выполнил: Песков Дмитрий");
+    wait_for_enter();
+}
+
+//=====settings=====
+
 fn settings_menu(settings: &mut Settings) {
     loop {
         println!("\nНастройки");
@@ -48,27 +88,38 @@ fn settings_menu(settings: &mut Settings) {
 
         match read_number() {
             1 => {
-                print!("Введите специальность: ");
-                settings.specialty = read_string();
+                println!("\nВыберите специальность: ");
+                settings.specialty = choose_specialty();
             }
             2 => {
-                print!("Введите имя студента: ");
-                settings.student_name = read_string();
+                print!("\nВведите имя студента: ");
+                settings.student_name = read_string(); 
             }
             3 => {
-                print!("Введите количество предметов: ");
+                print!("\nВведите количество предметов: ");
                 settings.subjects_count = read_number();
             }
             4 => break,
-            _ => println!("Такого пункта нет."),
+            _ => println!("\nТакого пункта нет."),
         }
     }
 }
+ 
+fn choose_specialty() -> String {
+    let specialties = file_manager::read_specialties();
 
-fn about() {
-    println!("\nО программе");
-    println!("Название: Моя весёлая жизнь в универе");
-    println!("Версия: 1.0");
-    println!("Выполнил: Песков Дмитрий");
-    wait_for_enter();
+    loop{
+        for (i, specialty) in  specialties.iter().enumerate() {
+            println!("{}. {}", i + 1, specialty);
+        }
+
+        let number = read_number();
+ 
+        if number >0 && number <= specialties.len() as u32 {
+            return specialties.iter().nth((number - 1) as usize).unwrap().clone();
+        }
+        else {
+        println!("\nНеверный выбор. Специальность не изменена.");
+        }
+    }
 }
