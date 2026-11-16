@@ -1,0 +1,17 @@
+# macOS / editor metadata
+.DS_Store
+.vscode/
+
+# Local trash
+docs/
+legacy/
+v 0.1/
+v 0.2/
+v 0.3/
+v 0.4/
+
+
+# Local data created
+/settings.txt
+/student_names.txt
+/specialties.txt
