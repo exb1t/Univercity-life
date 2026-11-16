@@ -1,4 +1,6 @@
 use std::io::{self, Write};
+use std::collections::LinkedList;
+
 mod output;
 
 
@@ -45,6 +47,6 @@ fn main() {
         subjects_count: 0,
     };
 
-    MW_output::main_menu(&mut settings);
+    output::main_menu(&mut settings);
 
 }
