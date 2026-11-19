@@ -22,14 +22,13 @@ namespace output {
         std::list<std::string>& studentNames
     );
 
-    // Подменю настроек
+    // Настройки
     void settingsMenu(
         GameSettings& settings,
         const std::set<std::string>& specialties,
         std::list<std::string>& studentNames
     );
 
-    // Изменение настроек
     void changeSpecialty(
         GameSettings& settings,
         const std::set<std::string>& specialties
@@ -44,10 +43,12 @@ namespace output {
 
     // Информация о программе
     void showAbout();
-    void showLoadGame();
 
     // Игровой процесс
     void startGame(const GameSettings& settings);
+
+    // Работа с сохранениями
+    void manageSaves();
 
     // Получение данных
     int chooseSpecialty(const std::set<std::string>& specialties);

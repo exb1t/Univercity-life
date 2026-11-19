@@ -2,14 +2,23 @@
 #ifndef FILE_MANAGER_H
 #define FILE_MANAGER_H
 
+#include "game.h"
 #include "game_settings.h"
 
 #include <string>
 #include <set>
 #include <list>
+#include <vector>
+#include <optional>
 
 namespace file_manager {
 
+    struct SaveInfo {
+        std::string title;
+        std::string filePath;
+    };
+
+    // Работа с файлами настроек
     void initialize();
 
     GameSettings loadSettings();
@@ -19,6 +28,22 @@ namespace file_manager {
 
     std::list<std::string> loadStudentNames();
     void saveStudentNames(const std::list<std::string>& studentNames);
+
+    // Работа с сохранениями игры
+    bool saveGame(
+        const std::string& title,
+        const game::Student& student,
+        int currentDay
+    );
+
+    std::vector<SaveInfo> listSaves();
+
+    std::optional<game::Student> loadGame(
+        const SaveInfo& save,
+        int& currentDay
+    );
+
+    bool deleteSave(const SaveInfo& save);
 
 }
 

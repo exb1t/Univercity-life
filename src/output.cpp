@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <iterator>
 #include <iomanip>
+#include <vector>
 
 using namespace std;
 
@@ -27,8 +28,13 @@ namespace output {
     const int CHANGE_SUBJECTS = 3;
     const int BACK = 4;
 
+    const int STUDY_DAYS = 5;
 
-    // Ввод числа
+
+    // ==============================
+    // ВВОД И ВЫВОД
+    // ==============================
+
     int readNumber(const string& prompt) {
 
         string input;
@@ -50,7 +56,6 @@ namespace output {
     }
 
 
-    // Ввод строки
     string readText(const string& prompt) {
 
         string input;
@@ -62,15 +67,17 @@ namespace output {
     }
 
 
-    // Ожидание Enter
     void waitForEnter() {
 
-        cout << "\nНажмите Enter, чтобы вернуться в главное меню...";
+        cout << "\nНажмите Enter, чтобы продолжить...";
         cin.get();
     }
 
 
-    // Вывод главного меню
+    // ==============================
+    // МЕНЮ
+    // ==============================
+
     void showMainMenu() {
 
         cout << "\n================================\n";
@@ -85,7 +92,6 @@ namespace output {
     }
 
 
-    // Вывод меню настроек
     void showSettingsMenu(const GameSettings& settings) {
 
         cout << "\n========== НАСТРОЙКИ ==========\n";
@@ -103,29 +109,21 @@ namespace output {
     }
 
 
-    // Информация о программе
     void showAbout() {
 
         cout << "\n========== О ПРОГРАММЕ ==========\n";
         cout << "Название: Моя веселая жизнь в универе\n";
-        cout << "Версия: 0.3\n";
+        cout << "Версия: 0.4\n";
         cout << "Разработчик: Песков Дмитрий\n";
 
         waitForEnter();
     }
 
 
-    // Загрузка игры
-    void showLoadGame() {
+    // ==============================
+    // ИЗМЕНЕНИЕ НАСТРОЕК
+    // ==============================
 
-        cout << "\nЗагрузка игры пока недоступна.\n";
-        cout << "Эта функция появится в ближайших обновлениях!\n";
-
-        waitForEnter();
-    }
-
-
-    // Выбор специальности
     int chooseSpecialty(const set<string>& specialties) {
 
         cout << "\n========== СПЕЦИАЛЬНОСТИ ==========\n";
@@ -142,7 +140,6 @@ namespace output {
     }
 
 
-    // Изменение специальности
     void changeSpecialty(
         GameSettings& settings,
         const set<string>& specialties
@@ -169,7 +166,6 @@ namespace output {
     }
 
 
-    // Получение имени студента
     string askStudentName(const list<string>& studentNames) {
 
         cout << "\n========== ИМЕНА СТУДЕНТОВ ==========\n";
@@ -191,7 +187,6 @@ namespace output {
     }
 
 
-    // Изменение имени студента
     void changeName(
         GameSettings& settings,
         list<string>& studentNames
@@ -226,7 +221,6 @@ namespace output {
     }
 
 
-    // Получение количества предметов
     int askSubjects() {
 
         int number;
@@ -235,17 +229,16 @@ namespace output {
 
             number = readNumber("\nВведите количество предметов: ");
 
-            if (number <= 0) {
-                cout << "Количество предметов должно быть больше нуля!\n";
+            if (number <= 0 || number > 1000) {
+                cout << "Введите количество от 1 до 1000!\n";
             }
 
-        } while (number <= 0);
+        } while (number <= 0 || number > 1000);
 
         return number;
     }
 
 
-    // Изменение количества предметов
     void changeSubjects(GameSettings& settings) {
 
         settings.subjects = askSubjects();
@@ -256,7 +249,6 @@ namespace output {
     }
 
 
-    // Подменю настроек
     void settingsMenu(
         GameSettings& settings,
         const set<string>& specialties,
@@ -297,7 +289,10 @@ namespace output {
     }
 
 
-    // Выбор предмета для домашнего действия
+    // ==============================
+    // ВЫБОР ПРЕДМЕТА
+    // ==============================
+
     size_t chooseSubjectForAction(const game::Student& student) {
 
         cout << "\nВыберите предмет:\n";
@@ -331,43 +326,15 @@ namespace output {
 
 
     // ==============================
-    // НАЧАЛО ИГРЫ
+    // ИГРОВОЙ ПРОЦЕСС
     // ==============================
 
-    void startGame(const GameSettings& settings) {
+    // student - объект студента
+    // currentDay - день, с которого продолжается игра
+    void playGame(game::Student& student, int currentDay) {
 
-        // Проверка количества предметов
-        if (settings.subjects <= 0) {
-
-            cout << "\nНевозможно начать игру!\n";
-            cout << "Сначала установите количество предметов в настройках.\n";
-
-            waitForEnter();
-            return;
-        }
-
-        const int STUDY_DAYS = 5;
-
-        // Создание студента
-        game::Student student(
-            settings.studentName,
-            settings.specialty,
-            settings.subjects
-        );
-
-        cout << "\n================================\n";
-        cout << "       СЕМЕСТР НАЧИНАЕТСЯ!\n";
-        cout << "================================\n";
-
-        cout << "Студент: " << student.getName() << endl;
-        cout << "Специальность: " << student.getSpecialty() << endl;
-
-        cout << "Количество предметов: "
-             << student.getSubjectsCount() << endl;
-
-
-        // Игровые дни
-        for (int day = 1; day <= STUDY_DAYS; day++) {
+        // Учебные дни
+        for (int day = currentDay; day <= STUDY_DAYS; day++) {
 
             cout << "\n================================\n";
             cout << "             ДЕНЬ " << day << "\n";
@@ -380,8 +347,8 @@ namespace output {
                  << student.getProblemSolving() << endl;
 
 
-            // Посещение или пропуск занятий
-            cout << "\nРАСПИСАНИЕ ЗАНЯТИЙ\n";
+            // Расписание занятий
+            cout << "\n========== РАСПИСАНИЕ ==========\n";
 
             for (
                 size_t i = 0;
@@ -491,6 +458,59 @@ namespace output {
                 }
             }
 
+
+            // Сохранение после завершения дня
+            cout << "\n========== СЛЕДУЮЩИЙ ШАГ ==========\n";
+
+            cout << "1. Продолжить игру\n";
+            cout << "2. Сохранить игру и выйти в главное меню\n";
+
+            int choice;
+
+            do {
+
+                choice = readNumber("Выберите действие: ");
+
+                if (choice != 1 && choice != 2) {
+                    cout << "Выберите 1 или 2!\n";
+                }
+
+            } while (choice != 1 && choice != 2);
+
+
+            if (choice == 2) {
+
+                string title;
+
+                do {
+
+                    title = readText("Введите название сохранения: ");
+
+                    if (title.empty()) {
+                        cout << "Название не может быть пустым!\n";
+                    }
+
+                } while (title.empty());
+
+
+                // Сохраняем следующий день
+                bool saved = file_manager::saveGame(
+                    title,
+                    student,
+                    day + 1
+                );
+
+                if (saved) {
+                    cout << "\nИгра успешно сохранена!\n";
+                }
+                else {
+                    cout << "\nОшибка сохранения игры!\n";
+                }
+
+                waitForEnter();
+
+                return;
+            }
         }
 
 
@@ -526,7 +546,7 @@ namespace output {
                  << subject.getKnowledge() << endl;
 
 
-            // Предварительная оценка
+            // Расчёт предварительной оценки
             int grade = student.calculateGrade(subject);
 
             cout << "\nВаша предварительная оценка: "
@@ -619,6 +639,177 @@ namespace output {
 
 
     // ==============================
+    // НАЧАЛО НОВОЙ ИГРЫ
+    // ==============================
+
+    void startGame(const GameSettings& settings) {
+
+        if (settings.subjects <= 0) {
+
+            cout << "\nНевозможно начать игру!\n";
+            cout << "Сначала установите количество предметов в настройках.\n";
+
+            waitForEnter();
+            return;
+        }
+
+        game::Student student(
+            settings.studentName,
+            settings.specialty,
+            settings.subjects
+        );
+
+        cout << "\n================================\n";
+        cout << "       СЕМЕСТР НАЧИНАЕТСЯ!\n";
+        cout << "================================\n";
+
+        cout << "Студент: " << student.getName() << endl;
+        cout << "Специальность: " << student.getSpecialty() << endl;
+
+        cout << "Количество предметов: "
+             << student.getSubjectsCount() << endl;
+
+        playGame(student, 1);
+    }
+
+
+    // ==============================
+    // ЗАГРУЗКА И УДАЛЕНИЕ СОХРАНЕНИЙ
+    // ==============================
+
+    void manageSaves() {
+
+        while (true) {
+
+            vector<file_manager::SaveInfo> saves =
+                file_manager::listSaves();
+
+            cout << "\n========== СОХРАНЕНИЯ ==========\n";
+
+            if (saves.empty()) {
+
+                cout << "Сохранения не найдены.\n";
+
+                waitForEnter();
+                return;
+            }
+
+            // Вывод списка сохранений
+            for (size_t i = 0; i < saves.size(); i++) {
+
+                cout << i + 1 << ". "
+                     << saves[i].title << endl;
+            }
+
+            cout << "0. Назад\n";
+
+            int choice = readNumber("\nВыберите сохранение: ");
+
+            if (choice == 0) {
+                return;
+            }
+
+            if (
+                choice < 1 ||
+                choice > static_cast<int>(saves.size())
+            ) {
+
+                cout << "Неверный номер сохранения!\n";
+                continue;
+            }
+
+            // Получение выбранного сохранения
+            const file_manager::SaveInfo& selectedSave =
+                saves[choice - 1];
+
+            cout << "\nВыбрано сохранение: "
+                 << selectedSave.title << endl;
+
+            cout << "\n1. Загрузить игру\n";
+            cout << "2. Удалить сохранение\n";
+            cout << "3. Назад\n";
+
+            int action = readNumber("Выберите действие: ");
+
+
+            switch (action) {
+
+                // Загрузка сохранения
+                case 1: {
+
+                    int currentDay = 1;
+
+                    optional<game::Student> student =
+                        file_manager::loadGame(
+                            selectedSave,
+                            currentDay
+                        );
+
+                    if (!student.has_value()) {
+
+                        cout << "\nНе удалось загрузить сохранение!\n";
+
+                        waitForEnter();
+                        break;
+                    }
+
+                    cout << "\nСохранение успешно загружено!\n";
+
+                    cout << "Студент: "
+                         << student->getName() << endl;
+
+                    cout << "Продолжение с дня: "
+                         << currentDay << endl;
+
+                    playGame(*student, currentDay);
+
+                    return;
+                }
+
+
+                // Удаление сохранения
+                case 2: {
+
+                    cout << "\nВы действительно хотите удалить сохранение \""
+                         << selectedSave.title << "\"?\n";
+
+                    cout << "1. Да\n";
+                    cout << "2. Нет\n";
+
+                    int confirm = readNumber("Ваш выбор: ");
+
+                    if (confirm == 1) {
+
+                        if (file_manager::deleteSave(selectedSave)) {
+
+                            cout << "\nСохранение успешно удалено!\n";
+                        }
+                        else {
+
+                            cout << "\nОшибка удаления сохранения!\n";
+                        }
+                    }
+                    else {
+
+                        cout << "\nУдаление отменено.\n";
+                    }
+
+                    break;
+                }
+
+
+                // Возвращение к списку сохранений
+                case 3:
+                    break;
+
+                default:
+                    cout << "\nНеверный пункт меню!\n";
+            }
+        }
+    }
+
+
+    // ==============================
     // ГЛАВНОЕ МЕНЮ
     // ==============================
 
@@ -643,7 +834,7 @@ namespace output {
                     break;
 
                 case LOAD_GAME:
-                    showLoadGame();
+                    manageSaves();
                     break;
 
                 case SETTINGS:

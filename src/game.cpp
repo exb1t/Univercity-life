@@ -47,20 +47,24 @@ namespace game {
         return answer == question.correctOption;
     }
 
-    // Посещение занятия
     void Subject::attend() {
         attendedDays++;
         addKnowledge(8);
     }
 
-    // Пропуск занятия
     void Subject::skip() {
         skippedDays++;
     }
 
-    // Увеличение знаний
     void Subject::addKnowledge(int value) {
         knowledge = limitValue(knowledge + value);
+    }
+
+    // Восстановление прогресса предмета
+    void Subject::setProgress(int knowledge, int attended, int skipped) {
+        this->knowledge = limitValue(knowledge);
+        attendedDays = max(0, attended);
+        skippedDays = max(0, skipped);
     }
 
 
@@ -80,7 +84,6 @@ namespace game {
             );
         }
 
-        // Каталог предметов
         vector<Subject> catalog = {
 
             Subject("Программирование", {
@@ -135,7 +138,6 @@ namespace game {
 
         };
 
-        // Добавление предметов студенту
         for (int i = 0; i < subjectsCount; i++) {
 
             if (i < static_cast<int>(catalog.size())) {
@@ -190,7 +192,6 @@ namespace game {
         return subjects.at(index);
     }
 
-    // Посещение предмета
     void Student::attendSubject(size_t index) {
         subjects.at(index).attend();
 
@@ -198,34 +199,39 @@ namespace game {
         spendEnergy(8);
     }
 
-    // Пропуск предмета
     void Student::skipSubject(size_t index) {
         subjects.at(index).skip();
 
         changeDiscipline(-6);
     }
 
-    // Уменьшение энергии
     void Student::spendEnergy(int value) {
         energy = limitValue(energy - value);
     }
 
-    // Восстановление энергии
     void Student::restoreEnergy(int value) {
         energy = limitValue(energy + value);
     }
 
-    // Изменение дисциплины
     void Student::changeDiscipline(int value) {
         discipline = limitValue(discipline + value);
     }
 
-    // Развитие навыка решения задач
     void Student::improveProblemSolving(int value) {
         problemSolving = limitValue(problemSolving + value);
     }
 
-    // Расчет итоговой оценки
+    // Восстановление характеристик студента
+    void Student::setCharacteristics(
+        int energy,
+        int discipline,
+        int problemSolving
+    ) {
+        this->energy = limitValue(energy);
+        this->discipline = limitValue(discipline);
+        this->problemSolving = limitValue(problemSolving);
+    }
+
     int Student::calculateGrade(const Subject& subject) const {
 
         double score =
@@ -247,7 +253,6 @@ namespace game {
     Action::Action(ActionType type) : type(type) {
     }
 
-    // Выполнение действия
     void Action::execute(Student& student, Subject* subject) const {
 
         switch (type) {
@@ -259,7 +264,6 @@ namespace game {
                 }
 
                 subject->addKnowledge(18);
-
                 student.spendEnergy(12);
                 student.changeDiscipline(2);
 
@@ -273,7 +277,6 @@ namespace game {
                 }
 
                 subject->addKnowledge(12);
-
                 student.spendEnergy(18);
                 student.improveProblemSolving(15);
 

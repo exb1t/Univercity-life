@@ -8,15 +8,12 @@
 
 namespace game {
 
-    // Экзаменационный вопрос
     struct Question {
         std::string text;
         std::vector<std::string> options;
         int correctOption;
     };
 
-
-    // Учебный предмет
     class Subject {
     private:
         std::string name;
@@ -40,10 +37,12 @@ namespace game {
         void attend();
         void skip();
         void addKnowledge(int value);
+
+        // Восстановление прогресса предмета
+        void setProgress(int knowledge, int attended, int skipped);
     };
 
 
-    // Студент
     class Student {
     private:
         std::string name;
@@ -83,11 +82,17 @@ namespace game {
         void changeDiscipline(int value);
         void improveProblemSolving(int value);
 
+        // Восстановление характеристик студента
+        void setCharacteristics(
+            int energy,
+            int discipline,
+            int problemSolving
+        );
+
         int calculateGrade(const Subject& subject) const;
     };
 
 
-    // Типы действий
     enum class ActionType {
         STUDY,
         SOLVE_TASKS,
@@ -95,7 +100,6 @@ namespace game {
     };
 
 
-    // Действие студента
     class Action {
     private:
         ActionType type;
