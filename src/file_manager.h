@@ -18,7 +18,7 @@ namespace file_manager {
         std::string filePath;
     };
 
-    // Работа с файлами настроек
+    // Настройки программы
     void initialize();
 
     GameSettings loadSettings();
@@ -29,7 +29,7 @@ namespace file_manager {
     std::list<std::string> loadStudentNames();
     void saveStudentNames(const std::list<std::string>& studentNames);
 
-    // Работа с сохранениями игры
+    // Сохранения игры
     bool saveGame(
         const std::string& title,
         const game::Student& student,

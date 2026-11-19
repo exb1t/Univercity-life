@@ -8,6 +8,8 @@
 #include <iomanip>
 #include <chrono>
 #include <algorithm>
+#include <system_error>
+#include <limits>
 
 using namespace std;
 
@@ -18,12 +20,11 @@ namespace file_manager {
     const string DATA_PATH = "data/";
     const string SAVES_PATH = "saves/";
 
-    const int SAVE_VERSION = 1;
-    const int STUDY_DAYS = 5;
+    const int SAVE_VERSION = 2;
 
 
     // ==============================
-    // ИНИЦИАЛИЗАЦИЯ ФАЙЛОВ
+    // ИНИЦИАЛИЗАЦИЯ
     // ==============================
 
     void initialize() {
@@ -51,7 +52,7 @@ namespace file_manager {
             ofstream file(DATA_PATH + "students.txt");
         }
 
-        // Создание настроек по умолчанию
+        // Создание настроек
         ifstream settingsFile(DATA_PATH + "settings.txt");
 
         if (!settingsFile.is_open()) {
@@ -63,7 +64,7 @@ namespace file_manager {
 
 
     // ==============================
-    // РАБОТА С НАСТРОЙКАМИ
+    // НАСТРОЙКИ
     // ==============================
 
     void saveSettings(const GameSettings& settings) {
@@ -133,7 +134,7 @@ namespace file_manager {
 
 
     // ==============================
-    // РАБОТА СО СПЕЦИАЛЬНОСТЯМИ
+    // СПЕЦИАЛЬНОСТИ
     // ==============================
 
     set<string> loadSpecialties() {
@@ -171,7 +172,7 @@ namespace file_manager {
 
 
     // ==============================
-    // РАБОТА С ИМЕНАМИ
+    // ИМЕНА СТУДЕНТОВ
     // ==============================
 
     list<string> loadStudentNames() {
@@ -209,7 +210,7 @@ namespace file_manager {
 
 
     // ==============================
-    // СОЗДАНИЕ СОХРАНЕНИЯ
+    // СОХРАНЕНИЕ ИГРЫ
     // ==============================
 
     bool saveGame(
@@ -218,11 +219,15 @@ namespace file_manager {
         int currentDay
     ) {
 
-        if (title.empty() || student.getSubjectsCount() == 0) {
+        if (
+            title.empty() ||
+            student.getSubjectsCount() == 0 ||
+            currentDay < 1 ||
+            currentDay > game::STUDY_DAYS + 1
+        ) {
             return false;
         }
 
-        // Создаем папку сохранений
         error_code ec;
 
         fs::create_directories(SAVES_PATH, ec);
@@ -231,7 +236,7 @@ namespace file_manager {
             return false;
         }
 
-        // Генерируем уникальное имя файла
+        // Генерация уникального имени файла
         auto now = chrono::system_clock::now();
 
         auto timestamp = chrono::duration_cast<chrono::microseconds>(
@@ -261,17 +266,21 @@ namespace file_manager {
             return false;
         }
 
-        // Запись версии формата
+        // Версия формата сохранения
         file << SAVE_VERSION << '\n';
 
         // Название сохранения
         file << quoted(title) << '\n';
 
-        // Текущий день и характеристики студента
+        // День, характеристики и финансовые данные
         file << currentDay << ' '
              << student.getEnergy() << ' '
              << student.getDiscipline() << ' '
-             << student.getProblemSolving() << '\n';
+             << student.getProblemSolving() << ' '
+             << student.getMoney() << ' '
+             << student.getMonthlyIncome() << ' '
+             << student.getMonthlyGradeSum() << ' '
+             << student.getMonthlyControlCount() << '\n';
 
         // Имя и специальность
         file << quoted(student.getName()) << '\n';
@@ -280,7 +289,7 @@ namespace file_manager {
         // Количество предметов
         file << student.getSubjectsCount() << '\n';
 
-        // Прогресс каждого предмета
+        // Прогресс по предметам
         for (
             size_t i = 0;
             i < student.getSubjectsCount();
@@ -296,7 +305,10 @@ namespace file_manager {
 
         file.close();
 
-        if (file.fail()) {
+        if (!file) {
+
+            fs::remove(filePath, ec);
+
             return false;
         }
 
@@ -320,7 +332,6 @@ namespace file_manager {
             return saves;
         }
 
-        // Перебираем все файлы в папке saves
         for (
             const auto& entry : fs::directory_iterator(SAVES_PATH, ec)
         ) {
@@ -346,7 +357,6 @@ namespace file_manager {
             int version;
             string title;
 
-            // Читаем версию и название сохранения
             if (file >> version >> quoted(title)) {
 
                 if (version == SAVE_VERSION && !title.empty()) {
@@ -359,7 +369,7 @@ namespace file_manager {
             }
         }
 
-        // Сортировка по имени файла
+        // Сортировка: новые сохранения выше
         sort(
             saves.begin(),
             saves.end(),
@@ -373,7 +383,7 @@ namespace file_manager {
 
 
     // ==============================
-    // ЗАГРУЗКА СОХРАНЕНИЯ
+    // ЗАГРУЗКА ИГРЫ
     // ==============================
 
     optional<game::Student> loadGame(
@@ -395,12 +405,17 @@ namespace file_manager {
         int discipline;
         int problemSolving;
 
+        int money;
+        int monthlyIncome;
+        int monthlyGradeSum;
+        int monthlyControlCount;
+
         string studentName;
         string specialty;
 
         int subjectsCount;
 
-        // Чтение основной информации
+        // Чтение версии и названия
         if (!(file >> version >> quoted(title))) {
             return nullopt;
         }
@@ -409,20 +424,34 @@ namespace file_manager {
             return nullopt;
         }
 
+        // Чтение характеристик и финансов
         if (!(file >> savedDay
                    >> energy
                    >> discipline
-                   >> problemSolving)) {
+                   >> problemSolving
+                   >> money
+                   >> monthlyIncome
+                   >> monthlyGradeSum
+                   >> monthlyControlCount)) {
+
             return nullopt;
         }
 
-        // Проверка характеристик
+        // Проверка основных параметров
         if (
             savedDay < 1 ||
-            savedDay > STUDY_DAYS + 1 ||
+            savedDay > game::STUDY_DAYS + 1 ||
+
             energy < 0 || energy > 100 ||
             discipline < 0 || discipline > 100 ||
-            problemSolving < 0 || problemSolving > 100
+            problemSolving < 0 || problemSolving > 100 ||
+
+            money < 0 ||
+            monthlyIncome < game::MIN_STIPEND ||
+            monthlyIncome > game::MAX_STIPEND ||
+
+            monthlyGradeSum < 0 ||
+            monthlyControlCount < 0
         ) {
             return nullopt;
         }
@@ -432,7 +461,11 @@ namespace file_manager {
             return nullopt;
         }
 
-        // Чтение количества предметов
+        if (studentName.empty() || specialty.empty()) {
+            return nullopt;
+        }
+
+        // Количество предметов
         if (!(file >> subjectsCount)) {
             return nullopt;
         }
@@ -441,7 +474,16 @@ namespace file_manager {
             return nullopt;
         }
 
-        // Создаем студента с сохраненными данными
+        // Проверка накопленных оценок
+        if (
+            monthlyControlCount > subjectsCount * 2 ||
+            monthlyGradeSum < monthlyControlCount * 2 ||
+            monthlyGradeSum > monthlyControlCount * 10
+        ) {
+            return nullopt;
+        }
+
+        // Создание студента
         game::Student student(
             studentName,
             specialty,
@@ -454,7 +496,14 @@ namespace file_manager {
             problemSolving
         );
 
-        // Восстанавливаем прогресс каждого предмета
+        student.setFinancialState(
+            money,
+            monthlyIncome,
+            monthlyGradeSum,
+            monthlyControlCount
+        );
+
+        // Восстановление предметов
         for (int i = 0; i < subjectsCount; i++) {
 
             int knowledge;
@@ -469,7 +518,7 @@ namespace file_manager {
                 knowledge < 0 || knowledge > 100 ||
                 attended < 0 ||
                 skipped < 0 ||
-                attended + skipped > STUDY_DAYS
+                attended + skipped > savedDay - 1
             ) {
                 return nullopt;
             }

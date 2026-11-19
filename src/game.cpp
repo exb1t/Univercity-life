@@ -61,7 +61,11 @@ namespace game {
     }
 
     // Восстановление прогресса предмета
-    void Subject::setProgress(int knowledge, int attended, int skipped) {
+    void Subject::setProgress(
+        int knowledge,
+        int attended,
+        int skipped
+    ) {
         this->knowledge = limitValue(knowledge);
         attendedDays = max(0, attended);
         skippedDays = max(0, skipped);
@@ -138,6 +142,7 @@ namespace game {
 
         };
 
+        // Добавление предметов студенту
         for (int i = 0; i < subjectsCount; i++) {
 
             if (i < static_cast<int>(catalog.size())) {
@@ -160,6 +165,11 @@ namespace game {
         }
     }
 
+
+    // ==============================
+    // ПОЛУЧЕНИЕ ХАРАКТЕРИСТИК
+    // ==============================
+
     const string& Student::getName() const {
         return name;
     }
@@ -180,6 +190,22 @@ namespace game {
         return problemSolving;
     }
 
+    int Student::getMoney() const {
+        return money;
+    }
+
+    int Student::getMonthlyIncome() const {
+        return monthlyIncome;
+    }
+
+    int Student::getMonthlyGradeSum() const {
+        return monthlyGradeSum;
+    }
+
+    int Student::getMonthlyControlCount() const {
+        return monthlyControlCount;
+    }
+
     size_t Student::getSubjectsCount() const {
         return subjects.size();
     }
@@ -191,6 +217,11 @@ namespace game {
     const Subject& Student::getSubject(size_t index) const {
         return subjects.at(index);
     }
+
+
+    // ==============================
+    // УЧЕБНЫЙ ПРОЦЕСС
+    // ==============================
 
     void Student::attendSubject(size_t index) {
         subjects.at(index).attend();
@@ -221,7 +252,84 @@ namespace game {
         problemSolving = limitValue(problemSolving + value);
     }
 
-    // Восстановление характеристик студента
+
+    // ==============================
+    // ФИНАНСЫ
+    // ==============================
+
+    // Получение ежемесячной стипендии
+    void Student::receiveMonthlyIncome() {
+        money += monthlyIncome;
+    }
+
+    // Трата денег
+    bool Student::spendMoney(int value) {
+
+        if (value < 0 || money < value) {
+            return false;
+        }
+
+        money -= value;
+
+        return true;
+    }
+
+
+    // ==============================
+    // КОНТРОЛЬ ЗНАНИЙ
+    // ==============================
+
+    // Запись оценки за контроль
+    void Student::recordControlGrade(int grade) {
+
+        grade = max(2, min(10, grade));
+
+        monthlyGradeSum += grade;
+        monthlyControlCount++;
+    }
+
+
+    // Завершение месяца и пересчет стипендии
+    double Student::finishMonth() {
+
+        if (monthlyControlCount == 0) {
+            return 0.0;
+        }
+
+        double averageGrade =
+            static_cast<double>(monthlyGradeSum) /
+            monthlyControlCount;
+
+        // Плохие оценки уменьшают следующую стипендию
+        if (averageGrade < 6.0) {
+
+            monthlyIncome = max(
+                MIN_STIPEND,
+                monthlyIncome - 100
+            );
+        }
+
+        // Хорошие оценки позволяют восстановить стипендию
+        else if (averageGrade >= 8.0) {
+
+            monthlyIncome = min(
+                MAX_STIPEND,
+                monthlyIncome + 50
+            );
+        }
+
+        // Очищаем результаты текущего месяца
+        monthlyGradeSum = 0;
+        monthlyControlCount = 0;
+
+        return averageGrade;
+    }
+
+
+    // ==============================
+    // ВОССТАНОВЛЕНИЕ ДАННЫХ
+    // ==============================
+
     void Student::setCharacteristics(
         int energy,
         int discipline,
@@ -232,6 +340,29 @@ namespace game {
         this->problemSolving = limitValue(problemSolving);
     }
 
+
+    void Student::setFinancialState(
+        int money,
+        int monthlyIncome,
+        int gradeSum,
+        int controlCount
+    ) {
+        this->money = max(0, money);
+
+        this->monthlyIncome = max(
+            MIN_STIPEND,
+            min(MAX_STIPEND, monthlyIncome)
+        );
+
+        this->monthlyGradeSum = max(0, gradeSum);
+        this->monthlyControlCount = max(0, controlCount);
+    }
+
+
+    // ==============================
+    // РАСЧЕТ ОЦЕНКИ
+    // ==============================
+
     int Student::calculateGrade(const Subject& subject) const {
 
         double score =
@@ -240,7 +371,8 @@ namespace game {
             problemSolving * 0.15 +
             energy * 0.05;
 
-        int grade = 2 + static_cast<int>(round(score * 8.0 / 100.0));
+        int grade =
+            2 + static_cast<int>(round(score * 8.0 / 100.0));
 
         return max(2, min(10, grade));
     }
@@ -253,42 +385,76 @@ namespace game {
     Action::Action(ActionType type) : type(type) {
     }
 
-    void Action::execute(Student& student, Subject* subject) const {
+
+    bool Action::execute(
+        Student& student,
+        Subject* subject
+    ) const {
 
         switch (type) {
 
             case ActionType::STUDY:
 
                 if (subject == nullptr) {
-                    return;
+                    return false;
                 }
 
                 subject->addKnowledge(18);
+
                 student.spendEnergy(12);
                 student.changeDiscipline(2);
 
-                break;
+                return true;
 
 
             case ActionType::SOLVE_TASKS:
 
                 if (subject == nullptr) {
-                    return;
+                    return false;
                 }
 
                 subject->addKnowledge(12);
+
                 student.spendEnergy(18);
                 student.improveProblemSolving(15);
 
-                break;
+                return true;
 
 
             case ActionType::REST:
 
                 student.restoreEnergy(30);
 
-                break;
+                return true;
+
+
+            case ActionType::BUY_TEXTBOOK:
+
+                if (subject == nullptr) {
+                    return false;
+                }
+
+                if (!student.spendMoney(100)) {
+                    return false;
+                }
+
+                subject->addKnowledge(20);
+
+                return true;
+
+
+            case ActionType::BUY_FOOD:
+
+                if (!student.spendMoney(30)) {
+                    return false;
+                }
+
+                student.restoreEnergy(25);
+
+                return true;
         }
+
+        return false;
     }
 
 }

@@ -8,12 +8,24 @@
 
 namespace game {
 
+    // Продолжительность игры
+    constexpr int STUDY_DAYS = 10;
+    constexpr int DAYS_PER_MONTH = 5;
+
+    // Финансовые параметры
+    constexpr int INITIAL_STIPEND = 500;
+    constexpr int MIN_STIPEND = 100;
+    constexpr int MAX_STIPEND = 500;
+
+
     struct Question {
         std::string text;
         std::vector<std::string> options;
         int correctOption;
     };
 
+
+    // Учебный предмет
     class Subject {
     private:
         std::string name;
@@ -38,11 +50,11 @@ namespace game {
         void skip();
         void addKnowledge(int value);
 
-        // Восстановление прогресса предмета
         void setProgress(int knowledge, int attended, int skipped);
     };
 
 
+    // Студент
     class Student {
     private:
         std::string name;
@@ -51,6 +63,14 @@ namespace game {
         int energy = 100;
         int discipline = 50;
         int problemSolving = 20;
+
+        // Финансовые характеристики
+        int money = 0;
+        int monthlyIncome = INITIAL_STIPEND;
+
+        // Результаты контроля знаний за текущий месяц
+        int monthlyGradeSum = 0;
+        int monthlyControlCount = 0;
 
         std::vector<Subject> subjects;
 
@@ -68,6 +88,11 @@ namespace game {
         int getDiscipline() const;
         int getProblemSolving() const;
 
+        int getMoney() const;
+        int getMonthlyIncome() const;
+        int getMonthlyGradeSum() const;
+        int getMonthlyControlCount() const;
+
         std::size_t getSubjectsCount() const;
 
         Subject& getSubject(std::size_t index);
@@ -82,24 +107,43 @@ namespace game {
         void changeDiscipline(int value);
         void improveProblemSolving(int value);
 
-        // Восстановление характеристик студента
+        // Финансовые операции
+        void receiveMonthlyIncome();
+        bool spendMoney(int value);
+
+        // Контроль знаний
+        void recordControlGrade(int grade);
+        double finishMonth();
+
+        // Восстановление данных из сохранения
         void setCharacteristics(
             int energy,
             int discipline,
             int problemSolving
         );
 
+        void setFinancialState(
+            int money,
+            int monthlyIncome,
+            int gradeSum,
+            int controlCount
+        );
+
         int calculateGrade(const Subject& subject) const;
     };
 
 
+    // Типы действий
     enum class ActionType {
         STUDY,
         SOLVE_TASKS,
-        REST
+        REST,
+        BUY_TEXTBOOK,
+        BUY_FOOD
     };
 
 
+    // Действие студента
     class Action {
     private:
         ActionType type;
@@ -107,7 +151,7 @@ namespace game {
     public:
         explicit Action(ActionType type);
 
-        void execute(Student& student, Subject* subject = nullptr) const;
+        bool execute(Student& student, Subject* subject = nullptr) const;
     };
 
 }

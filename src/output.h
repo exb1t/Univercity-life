@@ -44,10 +44,10 @@ namespace output {
     // Информация о программе
     void showAbout();
 
-    // Игровой процесс
+    // Игра
     void startGame(const GameSettings& settings);
 
-    // Работа с сохранениями
+    // Сохранения
     void manageSaves();
 
     // Получение данных

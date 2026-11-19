@@ -22,13 +22,11 @@ namespace output {
     const int ABOUT = 4;
     const int EXIT = 5;
 
-    // Константы меню настроек
+    // Константы настроек
     const int CHANGE_SPECIALTY = 1;
     const int CHANGE_NAME = 2;
     const int CHANGE_SUBJECTS = 3;
     const int BACK = 4;
-
-    const int STUDY_DAYS = 5;
 
 
     // ==============================
@@ -83,11 +81,13 @@ namespace output {
         cout << "\n================================\n";
         cout << "   МОЯ ВЕСЕЛАЯ ЖИЗНЬ В УНИВЕРЕ\n";
         cout << "================================\n";
+
         cout << "1. Начать игру\n";
         cout << "2. Загрузить игру\n";
         cout << "3. Настройки\n";
         cout << "4. О программе\n";
         cout << "5. Выход\n";
+
         cout << "================================\n";
     }
 
@@ -112,8 +112,9 @@ namespace output {
     void showAbout() {
 
         cout << "\n========== О ПРОГРАММЕ ==========\n";
+
         cout << "Название: Моя веселая жизнь в универе\n";
-        cout << "Версия: 0.4\n";
+        cout << "Версия: 0.5\n";
         cout << "Разработчик: Песков Дмитрий\n";
 
         waitForEnter();
@@ -121,7 +122,7 @@ namespace output {
 
 
     // ==============================
-    // ИЗМЕНЕНИЕ НАСТРОЕК
+    // НАСТРОЙКИ
     // ==============================
 
     int chooseSpecialty(const set<string>& specialties) {
@@ -326,200 +327,16 @@ namespace output {
 
 
     // ==============================
-    // ИГРОВОЙ ПРОЦЕСС
+    // КОНТРОЛЬ ЗНАНИЙ
     // ==============================
 
-    // student - объект студента
-    // currentDay - день, с которого продолжается игра
-    void playGame(game::Student& student, int currentDay) {
-
-        // Учебные дни
-        for (int day = currentDay; day <= STUDY_DAYS; day++) {
-
-            cout << "\n================================\n";
-            cout << "             ДЕНЬ " << day << "\n";
-            cout << "================================\n";
-
-            cout << "Энергия: " << student.getEnergy() << endl;
-            cout << "Дисциплина: " << student.getDiscipline() << endl;
-
-            cout << "Решение задач: "
-                 << student.getProblemSolving() << endl;
-
-
-            // Расписание занятий
-            cout << "\n========== РАСПИСАНИЕ ==========\n";
-
-            for (
-                size_t i = 0;
-                i < student.getSubjectsCount();
-                i++
-            ) {
-
-                const game::Subject& subject = student.getSubject(i);
-
-                cout << "\nПредмет: " << subject.getName() << endl;
-                cout << "1. Посетить\n";
-                cout << "2. Прогулять\n";
-
-                int choice;
-
-                do {
-
-                    choice = readNumber("Ваш выбор: ");
-
-                    if (choice != 1 && choice != 2) {
-                        cout << "Выберите 1 или 2!\n";
-                    }
-
-                } while (choice != 1 && choice != 2);
-
-
-                if (choice == 1) {
-
-                    student.attendSubject(i);
-
-                    cout << "Вы посетили занятие!\n";
-                }
-                else {
-
-                    student.skipSubject(i);
-
-                    cout << "Вы прогуляли занятие!\n";
-                }
-            }
-
-
-            // Домашние дела
-            cout << "\n========== ДОМАШНИЕ ДЕЛА ==========\n";
-
-            cout << "1. Учиться\n";
-            cout << "2. Решать задачи\n";
-            cout << "3. Отдыхать\n";
-
-            int activity;
-
-            do {
-
-                activity = readNumber("Чем займётесь дома? ");
-
-                if (activity < 1 || activity > 3) {
-                    cout << "Выберите действие от 1 до 3!\n";
-                }
-
-            } while (activity < 1 || activity > 3);
-
-
-            switch (activity) {
-
-                case 1: {
-
-                    size_t index = chooseSubjectForAction(student);
-
-                    game::Action action(game::ActionType::STUDY);
-
-                    action.execute(
-                        student,
-                        &student.getSubject(index)
-                    );
-
-                    cout << "Вы позанимались выбранным предметом!\n";
-
-                    break;
-                }
-
-                case 2: {
-
-                    size_t index = chooseSubjectForAction(student);
-
-                    game::Action action(
-                        game::ActionType::SOLVE_TASKS
-                    );
-
-                    action.execute(
-                        student,
-                        &student.getSubject(index)
-                    );
-
-                    cout << "Вы решили несколько задач!\n";
-
-                    break;
-                }
-
-                case 3: {
-
-                    game::Action action(game::ActionType::REST);
-
-                    action.execute(student);
-
-                    cout << "Вы хорошо отдохнули!\n";
-
-                    break;
-                }
-            }
-
-
-            // Сохранение после завершения дня
-            cout << "\n========== СЛЕДУЮЩИЙ ШАГ ==========\n";
-
-            cout << "1. Продолжить игру\n";
-            cout << "2. Сохранить игру и выйти в главное меню\n";
-
-            int choice;
-
-            do {
-
-                choice = readNumber("Выберите действие: ");
-
-                if (choice != 1 && choice != 2) {
-                    cout << "Выберите 1 или 2!\n";
-                }
-
-            } while (choice != 1 && choice != 2);
-
-
-            if (choice == 2) {
-
-                string title;
-
-                do {
-
-                    title = readText("Введите название сохранения: ");
-
-                    if (title.empty()) {
-                        cout << "Название не может быть пустым!\n";
-                    }
-
-                } while (title.empty());
-
-
-                // Сохраняем следующий день
-                bool saved = file_manager::saveGame(
-                    title,
-                    student,
-                    day + 1
-                );
-
-                if (saved) {
-                    cout << "\nИгра успешно сохранена!\n";
-                }
-                else {
-                    cout << "\nОшибка сохранения игры!\n";
-                }
-
-                waitForEnter();
-
-                return;
-            }
-        }
-
-
-        // ==============================
-        // СЕССИЯ
-        // ==============================
+    void runKnowledgeControl(
+        game::Student& student,
+        const string& controlName
+    ) {
 
         cout << "\n================================\n";
-        cout << "          НАЧАЛАСЬ СЕССИЯ!\n";
+        cout << "       " << controlName << "\n";
         cout << "================================\n";
 
         int totalGrade = 0;
@@ -532,32 +349,18 @@ namespace output {
 
             game::Subject& subject = student.getSubject(i);
 
-            cout << "\n================================\n";
+            cout << "\nПредмет: " << subject.getName() << endl;
 
-            cout << "Предмет: " << subject.getName() << endl;
-
-            cout << "Посещено занятий: "
-                 << subject.getAttendedDays() << endl;
-
-            cout << "Пропущено занятий: "
-                 << subject.getSkippedDays() << endl;
-
-            cout << "Знания по предмету: "
-                 << subject.getKnowledge() << endl;
-
-
-            // Расчёт предварительной оценки
+            // Предварительная оценка
             int grade = student.calculateGrade(subject);
 
-            cout << "\nВаша предварительная оценка: "
+            cout << "Предварительная оценка: "
                  << grade << endl;
 
-
-            // Экзаменационный вопрос
             const game::Question& question = subject.getQuestion();
 
-            cout << "\nЭкзаменационный вопрос:\n";
-            cout << question.text << endl;
+            // Вопрос
+            cout << "\n" << question.text << endl;
 
             for (
                 size_t j = 0;
@@ -591,13 +394,13 @@ namespace output {
             // Проверка ответа
             if (subject.isCorrectAnswer(answer)) {
 
-                cout << "\nПравильно! Дополнительный балл!\n";
+                cout << "Правильно! Дополнительный балл!\n";
 
                 grade = min(10, grade + 1);
             }
             else {
 
-                cout << "\nНеправильно!\n";
+                cout << "Неправильно!\n";
 
                 cout << "Правильный ответ: "
                      << question.correctOption << ". "
@@ -606,6 +409,419 @@ namespace output {
             }
 
             cout << "Итоговая оценка: " << grade << endl;
+
+            // Записываем результат в статистику месяца
+            student.recordControlGrade(grade);
+
+            totalGrade += grade;
+        }
+
+        double averageGrade =
+            static_cast<double>(totalGrade) /
+            student.getSubjectsCount();
+
+        cout << "\nСредняя оценка за контроль: "
+             << fixed << setprecision(1)
+             << averageGrade << endl;
+    }
+
+
+    // ==============================
+    // ДОМАШНИЕ ДЕЛА
+    // ==============================
+
+    void homeActivities(game::Student& student) {
+
+        cout << "\n========== ДОМАШНИЕ ДЕЛА ==========\n";
+
+        cout << "Ваш баланс: "
+             << student.getMoney() << " BYN\n";
+
+        cout << "1. Учиться\n";
+        cout << "2. Решать задачи\n";
+        cout << "3. Отдыхать\n";
+        cout << "4. Купить учебник (100 BYN)\n";
+        cout << "5. Купить перекус (30 BYN)\n";
+
+        int choice;
+
+        do {
+
+            choice = readNumber("Выберите действие: ");
+
+            if (choice < 1 || choice > 5) {
+                cout << "Выберите действие от 1 до 5!\n";
+            }
+
+        } while (choice < 1 || choice > 5);
+
+
+        bool result = false;
+
+        switch (choice) {
+
+            case 1: {
+
+                size_t index = chooseSubjectForAction(student);
+
+                game::Action action(game::ActionType::STUDY);
+
+                result = action.execute(
+                    student,
+                    &student.getSubject(index)
+                );
+
+                break;
+            }
+
+            case 2: {
+
+                size_t index = chooseSubjectForAction(student);
+
+                game::Action action(
+                    game::ActionType::SOLVE_TASKS
+                );
+
+                result = action.execute(
+                    student,
+                    &student.getSubject(index)
+                );
+
+                break;
+            }
+
+            case 3: {
+
+                game::Action action(game::ActionType::REST);
+
+                result = action.execute(student);
+
+                break;
+            }
+
+            case 4: {
+
+                size_t index = chooseSubjectForAction(student);
+
+                game::Action action(
+                    game::ActionType::BUY_TEXTBOOK
+                );
+
+                result = action.execute(
+                    student,
+                    &student.getSubject(index)
+                );
+
+                if (result) {
+                    cout << "Учебник успешно куплен!\n";
+                    cout << "Знания по предмету увеличены!\n";
+                }
+
+                break;
+            }
+
+            case 5: {
+
+                game::Action action(
+                    game::ActionType::BUY_FOOD
+                );
+
+                result = action.execute(student);
+
+                if (result) {
+                    cout << "Перекус успешно куплен!\n";
+                    cout << "Энергия восстановлена!\n";
+                }
+
+                break;
+            }
+        }
+
+
+        if (!result) {
+            cout << "Недостаточно денег или невозможно выполнить действие!\n";
+        }
+        else {
+
+            cout << "Текущий баланс: "
+                 << student.getMoney() << " BYN\n";
+        }
+    }
+
+
+    // ==============================
+    // ИГРОВОЙ ПРОЦЕСС
+    // ==============================
+
+    void playGame(game::Student& student, int currentDay) {
+
+        for (
+            int day = currentDay;
+            day <= game::STUDY_DAYS;
+            day++
+        ) {
+
+            int dayInMonth =
+                (day - 1) % game::DAYS_PER_MONTH + 1;
+
+            cout << "\n================================\n";
+            cout << "             ДЕНЬ " << day << "\n";
+            cout << "================================\n";
+
+
+            // Ежемесячная выплата
+            if (dayInMonth == 1) {
+
+                student.receiveMonthlyIncome();
+
+                cout << "\nПолучена ежемесячная стипендия: "
+                     << student.getMonthlyIncome() << " BYN\n";
+
+                cout << "Текущий баланс: "
+                     << student.getMoney() << " BYN\n";
+            }
+
+
+            // Характеристики
+            cout << "\nЭнергия: "
+                 << student.getEnergy() << endl;
+
+            cout << "Дисциплина: "
+                 << student.getDiscipline() << endl;
+
+            cout << "Решение задач: "
+                 << student.getProblemSolving() << endl;
+
+            cout << "Деньги: "
+                 << student.getMoney() << " BYN\n";
+
+
+            // Расписание
+            cout << "\n========== РАСПИСАНИЕ ==========\n";
+
+            for (
+                size_t i = 0;
+                i < student.getSubjectsCount();
+                i++
+            ) {
+
+                const game::Subject& subject =
+                    student.getSubject(i);
+
+                cout << "\nПредмет: "
+                     << subject.getName() << endl;
+
+                cout << "1. Посетить\n";
+                cout << "2. Прогулять\n";
+
+                int choice;
+
+                do {
+
+                    choice = readNumber("Ваш выбор: ");
+
+                    if (choice != 1 && choice != 2) {
+                        cout << "Выберите 1 или 2!\n";
+                    }
+
+                } while (choice != 1 && choice != 2);
+
+
+                if (choice == 1) {
+
+                    student.attendSubject(i);
+
+                    cout << "Вы посетили занятие!\n";
+                }
+                else {
+
+                    student.skipSubject(i);
+
+                    cout << "Вы прогуляли занятие!\n";
+                }
+            }
+
+
+            // Домашние дела
+            homeActivities(student);
+
+
+            // Контроль знаний
+            if (dayInMonth == 2) {
+
+                runKnowledgeControl(
+                    student,
+                    "ЛАБОРАТОРНАЯ РАБОТА"
+                );
+            }
+
+            if (dayInMonth == 4) {
+
+                runKnowledgeControl(
+                    student,
+                    "АТТЕСТАЦИЯ"
+                );
+            }
+
+
+            // Завершение месяца
+            if (dayInMonth == game::DAYS_PER_MONTH) {
+
+                cout << "\n========== ИТОГИ МЕСЯЦА ==========\n";
+
+                double averageGrade = student.finishMonth();
+
+                cout << "Средний балл за месяц: "
+                     << fixed << setprecision(1)
+                     << averageGrade << endl;
+
+                cout << "Размер следующей стипендии: "
+                     << student.getMonthlyIncome() << " BYN\n";
+            }
+
+
+            // Сохранение после завершения дня
+            cout << "\n========== СЛЕДУЮЩИЙ ШАГ ==========\n";
+
+            cout << "1. Продолжить игру\n";
+            cout << "2. Сохранить игру и выйти\n";
+
+            int choice;
+
+            do {
+
+                choice = readNumber("Ваш выбор: ");
+
+                if (choice != 1 && choice != 2) {
+                    cout << "Выберите 1 или 2!\n";
+                }
+
+            } while (choice != 1 && choice != 2);
+
+
+            if (choice == 2) {
+
+                string title;
+
+                do {
+
+                    title = readText("Введите название сохранения: ");
+
+                    if (title.empty()) {
+                        cout << "Название не может быть пустым!\n";
+                    }
+
+                } while (title.empty());
+
+
+                bool saved = file_manager::saveGame(
+                    title,
+                    student,
+                    day + 1
+                );
+
+                if (saved) {
+                    cout << "Игра успешно сохранена!\n";
+                }
+                else {
+                    cout << "Ошибка сохранения игры!\n";
+                }
+
+                waitForEnter();
+
+                return;
+            }
+        }
+
+
+        // ==============================
+        // СЕССИЯ
+        // ==============================
+
+        cout << "\n================================\n";
+        cout << "          НАЧАЛАСЬ СЕССИЯ!\n";
+        cout << "================================\n";
+
+        int totalGrade = 0;
+
+        for (
+            size_t i = 0;
+            i < student.getSubjectsCount();
+            i++
+        ) {
+
+            game::Subject& subject = student.getSubject(i);
+
+            cout << "\nПредмет: "
+                 << subject.getName() << endl;
+
+            cout << "Посещено занятий: "
+                 << subject.getAttendedDays() << endl;
+
+            cout << "Пропущено занятий: "
+                 << subject.getSkippedDays() << endl;
+
+            cout << "Знания: "
+                 << subject.getKnowledge() << endl;
+
+
+            int grade = student.calculateGrade(subject);
+
+            cout << "Предварительная оценка: "
+                 << grade << endl;
+
+            const game::Question& question =
+                subject.getQuestion();
+
+            cout << "\n" << question.text << endl;
+
+            for (
+                size_t j = 0;
+                j < question.options.size();
+                j++
+            ) {
+
+                cout << j + 1 << ". "
+                     << question.options[j] << endl;
+            }
+
+            int answer;
+
+            do {
+
+                answer = readNumber("Ваш ответ: ");
+
+                if (
+                    answer < 1 ||
+                    answer > static_cast<int>(question.options.size())
+                ) {
+                    cout << "Неверный вариант ответа!\n";
+                }
+
+            } while (
+                answer < 1 ||
+                answer > static_cast<int>(question.options.size())
+            );
+
+
+            if (subject.isCorrectAnswer(answer)) {
+
+                cout << "Правильно! +1 балл.\n";
+
+                grade = min(10, grade + 1);
+            }
+            else {
+
+                cout << "Неправильно!\n";
+
+                cout << "Правильный ответ: "
+                     << question.correctOption << ". "
+                     << question.options[question.correctOption - 1]
+                     << endl;
+            }
+
+            cout << "Итоговая оценка: "
+                 << grade << endl;
 
             totalGrade += grade;
         }
@@ -620,16 +836,23 @@ namespace output {
         cout << "        СЕССИЯ ЗАВЕРШЕНА!\n";
         cout << "================================\n";
 
-        cout << "Студент: " << student.getName() << endl;
+        cout << "Студент: "
+             << student.getName() << endl;
 
         cout << "Средний балл: "
              << fixed << setprecision(1)
              << averageGrade << endl;
 
-        cout << "\nИтоговые характеристики:\n";
+        cout << "Остаток денег: "
+             << student.getMoney() << " BYN\n";
 
-        cout << "Энергия: " << student.getEnergy() << endl;
-        cout << "Дисциплина: " << student.getDiscipline() << endl;
+        cout << "\nХарактеристики:\n";
+
+        cout << "Энергия: "
+             << student.getEnergy() << endl;
+
+        cout << "Дисциплина: "
+             << student.getDiscipline() << endl;
 
         cout << "Решение задач: "
              << student.getProblemSolving() << endl;
@@ -646,8 +869,7 @@ namespace output {
 
         if (settings.subjects <= 0) {
 
-            cout << "\nНевозможно начать игру!\n";
-            cout << "Сначала установите количество предметов в настройках.\n";
+            cout << "\nСначала установите количество предметов в настройках!\n";
 
             waitForEnter();
             return;
@@ -659,22 +881,14 @@ namespace output {
             settings.subjects
         );
 
-        cout << "\n================================\n";
-        cout << "       СЕМЕСТР НАЧИНАЕТСЯ!\n";
-        cout << "================================\n";
-
-        cout << "Студент: " << student.getName() << endl;
-        cout << "Специальность: " << student.getSpecialty() << endl;
-
-        cout << "Количество предметов: "
-             << student.getSubjectsCount() << endl;
+        cout << "\nСЕМЕСТР НАЧИНАЕТСЯ!\n";
 
         playGame(student, 1);
     }
 
 
     // ==============================
-    // ЗАГРУЗКА И УДАЛЕНИЕ СОХРАНЕНИЙ
+    // УПРАВЛЕНИЕ СОХРАНЕНИЯМИ
     // ==============================
 
     void manageSaves() {
@@ -694,7 +908,7 @@ namespace output {
                 return;
             }
 
-            // Вывод списка сохранений
+
             for (size_t i = 0; i < saves.size(); i++) {
 
                 cout << i + 1 << ". "
@@ -714,18 +928,18 @@ namespace output {
                 choice > static_cast<int>(saves.size())
             ) {
 
-                cout << "Неверный номер сохранения!\n";
+                cout << "Неверный номер!\n";
                 continue;
             }
 
-            // Получение выбранного сохранения
+
             const file_manager::SaveInfo& selectedSave =
                 saves[choice - 1];
 
-            cout << "\nВыбрано сохранение: "
+            cout << "\nВыбрано: "
                  << selectedSave.title << endl;
 
-            cout << "\n1. Загрузить игру\n";
+            cout << "1. Загрузить игру\n";
             cout << "2. Удалить сохранение\n";
             cout << "3. Назад\n";
 
@@ -734,7 +948,6 @@ namespace output {
 
             switch (action) {
 
-                // Загрузка сохранения
                 case 1: {
 
                     int currentDay = 1;
@@ -747,30 +960,35 @@ namespace output {
 
                     if (!student.has_value()) {
 
-                        cout << "\nНе удалось загрузить сохранение!\n";
+                        cout << "Не удалось загрузить сохранение!\n";
 
                         waitForEnter();
                         break;
                     }
 
-                    cout << "\nСохранение успешно загружено!\n";
+                    cout << "\nСохранение загружено!\n";
 
                     cout << "Студент: "
                          << student->getName() << endl;
 
-                    cout << "Продолжение с дня: "
+                    cout << "День: "
                          << currentDay << endl;
 
+                    cout << "Баланс: "
+                         << student->getMoney() << " BYN\n";
+
+                    waitForEnter();
+
+                    // Продолжение игры
                     playGame(*student, currentDay);
 
                     return;
                 }
 
 
-                // Удаление сохранения
                 case 2: {
 
-                    cout << "\nВы действительно хотите удалить сохранение \""
+                    cout << "\nУдалить сохранение \""
                          << selectedSave.title << "\"?\n";
 
                     cout << "1. Да\n";
@@ -781,29 +999,25 @@ namespace output {
                     if (confirm == 1) {
 
                         if (file_manager::deleteSave(selectedSave)) {
-
-                            cout << "\nСохранение успешно удалено!\n";
+                            cout << "Сохранение удалено!\n";
                         }
                         else {
-
-                            cout << "\nОшибка удаления сохранения!\n";
+                            cout << "Ошибка удаления!\n";
                         }
                     }
                     else {
-
-                        cout << "\nУдаление отменено.\n";
+                        cout << "Удаление отменено.\n";
                     }
 
                     break;
                 }
 
 
-                // Возвращение к списку сохранений
                 case 3:
                     break;
 
                 default:
-                    cout << "\nНеверный пункт меню!\n";
+                    cout << "Неверный пункт меню!\n";
             }
         }
     }
@@ -846,11 +1060,11 @@ namespace output {
                     break;
 
                 case EXIT:
-                    cout << "\nЗавершение работы программы...\n";
+                    cout << "Завершение работы программы...\n";
                     break;
 
                 default:
-                    cout << "\nНеверный пункт меню! Попробуйте снова.\n";
+                    cout << "Неверный пункт меню!\n";
             }
 
         } while (choice != EXIT);
