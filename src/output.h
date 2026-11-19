@@ -42,10 +42,12 @@ namespace output {
 
     void changeSubjects(GameSettings& settings);
 
-    // Вывод информации
+    // Информация о программе
     void showAbout();
-    void showStartGame(const GameSettings& settings);
     void showLoadGame();
+
+    // Игровой процесс
+    void startGame(const GameSettings& settings);
 
     // Получение данных
     int chooseSpecialty(const std::set<std::string>& specialties);

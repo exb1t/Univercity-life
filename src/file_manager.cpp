@@ -12,14 +12,17 @@ namespace file_manager {
 
     const string DATA_PATH = "data/";
 
-    // Создание папки и файлов при первом запуске
+
+    // Создание папки и файлов
     void initialize() {
+
         filesystem::create_directories(DATA_PATH);
 
-        // Создание файла специальностей
+        // Файл специальностей
         ifstream specialtiesFile(DATA_PATH + "specialties.txt");
 
         if (!specialtiesFile.is_open()) {
+
             ofstream file(DATA_PATH + "specialties.txt");
 
             file << "Программная инженерия\n";
@@ -28,14 +31,14 @@ namespace file_manager {
             file << "Компьютерные науки\n";
         }
 
-        // Создание пустого файла имен
+        // Файл имен
         ifstream studentsFile(DATA_PATH + "students.txt");
 
         if (!studentsFile.is_open()) {
             ofstream file(DATA_PATH + "students.txt");
         }
 
-        // Создание настроек по умолчанию
+        // Файл настроек
         ifstream settingsFile(DATA_PATH + "settings.txt");
 
         if (!settingsFile.is_open()) {
@@ -44,8 +47,10 @@ namespace file_manager {
         }
     }
 
+
     // Сохранение настроек
     void saveSettings(const GameSettings& settings) {
+
         ofstream file(DATA_PATH + "settings.txt");
 
         if (!file.is_open()) {
@@ -58,8 +63,10 @@ namespace file_manager {
         file << settings.subjects << endl;
     }
 
+
     // Загрузка настроек
     GameSettings loadSettings() {
+
         GameSettings settings;
 
         ifstream file(DATA_PATH + "settings.txt");
@@ -76,9 +83,9 @@ namespace file_manager {
             !getline(file, studentName) ||
             !getline(file, subjectsLine)) {
 
-            cout << "Ошибка чтения настроек. Используются значения по умолчанию.\n";
-
+            file.close();
             saveSettings(settings);
+
             return settings;
         }
 
@@ -87,10 +94,11 @@ namespace file_manager {
         int subjects;
         string extra;
 
-        if (!(ss >> subjects) || (ss >> extra) || subjects <= 0) {
-            cout << "Некорректное количество предметов. Используются значения по умолчанию.\n";
+        if (!(ss >> subjects) || (ss >> extra) || subjects < 0) {
 
+            file.close();
             saveSettings(settings);
+
             return settings;
         }
 
@@ -107,8 +115,10 @@ namespace file_manager {
         return settings;
     }
 
+
     // Загрузка специальностей в Set
     set<string> loadSpecialties() {
+
         set<string> specialties;
 
         ifstream file(DATA_PATH + "specialties.txt");
@@ -116,13 +126,14 @@ namespace file_manager {
         string specialty;
 
         while (getline(file, specialty)) {
+
             if (!specialty.empty()) {
                 specialties.insert(specialty);
             }
         }
 
-        // Если файл пустой, восстанавливаем значения по умолчанию
         if (specialties.empty()) {
+
             ofstream output(DATA_PATH + "specialties.txt");
 
             output << "Программная инженерия\n";
@@ -139,8 +150,10 @@ namespace file_manager {
         return specialties;
     }
 
-    // Загрузка имен студентов в List
+
+    // Загрузка имен в List
     list<string> loadStudentNames() {
+
         list<string> studentNames;
 
         ifstream file(DATA_PATH + "students.txt");
@@ -148,6 +161,7 @@ namespace file_manager {
         string name;
 
         while (getline(file, name)) {
+
             if (!name.empty()) {
                 studentNames.push_back(name);
             }
@@ -156,8 +170,10 @@ namespace file_manager {
         return studentNames;
     }
 
-    // Сохранение имен студентов
+
+    // Сохранение имен
     void saveStudentNames(const list<string>& studentNames) {
+
         ofstream file(DATA_PATH + "students.txt");
 
         if (!file.is_open()) {

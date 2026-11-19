@@ -10,17 +10,13 @@
 
 namespace file_manager {
 
-    // Инициализация папки с файлами
     void initialize();
 
-    // Работа с настройками
     GameSettings loadSettings();
     void saveSettings(const GameSettings& settings);
 
-    // Работа со специальностями
     std::set<std::string> loadSpecialties();
 
-    // Работа с именами студентов
     std::list<std::string> loadStudentNames();
     void saveStudentNames(const std::list<std::string>& studentNames);
 
